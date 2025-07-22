@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart City Dashboard</title>
+  <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.0.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: 'Orbitron', sans-serif;
+        background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+        color: #00ffff;
+        overflow: hidden;
+      }
+    
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+    
+      .left-pane {
+        flex: 7.5;
+        position: relative;
+        background-color: #000;
+        border-right: 2px solid rgba(0, 255, 255, 0.2);
+        box-shadow: inset 0 0 30px #00eaff55;
+      }
+    
+      .right-pane {
+        flex: 2;
+        padding: 18px;
+        background: radial-gradient(circle, #0a1e2f, #06121f);
+        overflow-y: auto;
+        color: #c5faff;
+      }
+    
+      #skfb-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        filter: drop-shadow(0 0 20px #00eaff);
+      }
+    
+      .camera-section {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed rgba(0, 255, 255, 0.1);
+      }
+    
+      .camera-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #00ffff;
+        margin-bottom: 5px;
+        border-left: 4px solid #00eaff;
+        padding-left: 8px;
+      }
+    
+      .camera-image img {
+        display: block;              
+        margin-left: auto;         /
+        margin-right: auto;
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #00eaff;
+        box-shadow: 0 0 12px #00eaff66;
+        margin-bottom: 8px;
+        transition: transform 0.3s ease;
+      }
+    
+      .camera-image img:hover {
+        transform: scale(1.03);
+      }
+    
+      .camera-detail {
+        font-size: 14px;
+        background-color: rgba(0, 255, 255, 0.05);
+        border-left: 3px solid #00ffff;
+        padding: 10px;
+        border-radius: 5px;
+        line-height: 1.4;
+        box-shadow: 0 0 8px #00c8ff44;
+        margin-bottom: 5px;
+      }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-pane">
+      <iframe id="skfb-frame" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
+    </div>
+
+    <div class="right-pane">
+      <div class="camera-section">
+        <div class="camera-title" id="cameraNameBox">📷 รอกด Annotation กล้อง...</div>
+        <div class="camera-image" id="infoBox">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+        <div class="camera-detail" id="infoBox2">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+      </div>
+      <div class="camera-section">
+        <div class="camera-title" id="Camera2">📷 กล้อง 2</div>
+        <div class="camera-image" id="Picture2">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+        <div class="camera-detail" id="Alarm2">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+      </div>
+      <div class="camera-section">
+        <div class="camera-title" id="Camera3">📷 กล้อง 3</div>
+        <div class="camera-image" id="Picture3">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+        <div class="camera-detail" id="Alarm3">ℹ️ ข้อมูลจาก Google Sheet จะแสดงตรงนี้</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('skfb-frame');
+    const client = new Sketchfab(iframe);
+    let CameraName = '';
+
+    function getTextFromGoogleSheet(cameraId) {
+      const sheetID = "1t54gy28z2ytqaOrvMZIOWUUg3eVXndgGpi24veRmibU";
+      const sheetName = "Dashbroad-WH-Real-Picture(last)";
+      const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+
+      fetch(url)
+        .then(res => res.text())
+        .then(data => {
+          const jsonData = JSON.parse(data.substr(47).slice(0, -2));
+          const rows = jsonData.table.rows;
+
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i].c;
+            if (row[0] && row[0].v === cameraId) {
+              // กล้อง 1
+              const img1 = row[2]?.v || 'ไม่พบข้อมูล';
+              const text1 = row[3]?.v || 'ไม่พบข้อมูล';
+              document.getElementById("infoBox").innerHTML = `<img src="${img1}" alt="ภาพจากกล้อง">`;
+              document.getElementById("infoBox2").innerText = text1;
+
+              // กล้อง 2
+              const row2 = rows[i+1]?.c || [];
+              const name2 = row2[0]?.v || 'ไม่พบข้อมูล';
+              const img2 = row2[2]?.v || 'ไม่พบข้อมูล';
+              const text2 = row2[3]?.v || 'ไม่พบข้อมูล';
+              document.getElementById("Camera2").innerText = 'กล้อง ' + name2;
+              document.getElementById("Picture2").innerHTML = `<img src="${img2}" alt="ภาพกล้อง 2">`;
+              document.getElementById("Alarm2").innerText = text2;
+
+              // กล้อง 3
+              const row3 = rows[i+2]?.c || [];
+              const name3 = row3[0]?.v || 'ไม่พบข้อมูล';
+              const img3 = row3[2]?.v || 'ไม่พบข้อมูล';
+              const text3 = row3[3]?.v || 'ไม่พบข้อมูล';
+              document.getElementById("Camera3").innerText = 'กล้อง ' + name3;
+              document.getElementById("Picture3").innerHTML = `<img src="${img3}" alt="ภาพกล้อง 3">`;
+              document.getElementById("Alarm3").innerText = text3;
+
+              break;
+            }
+          }
+        })
+        .catch(err => console.error("❌ Error loading Google Sheet:", err));
+    }
+
+    client.init('2e29b7e958b84f4e8741a5f3cedbfb79', {
+      success: function (api) {
+        api.start();
+        api.addEventListener('viewerready', function () {
+          api.addEventListener('annotationFocus', function (index) {
+            api.getAnnotation(index, function (err, annotation) {
+              if (!err && annotation?.name) {
+                CameraName = annotation.name;
+                document.getElementById('cameraNameBox').innerText = 'กล้อง ' + CameraName;
+                getTextFromGoogleSheet(CameraName);
+              }
+            });
+          });
+        });
+      },
+      error: function () {
+        console.error('❌ โหลด Sketchfab API ไม่ได้');
+      }
+    });
+  </script>
+</body>
+</html>
